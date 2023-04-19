@@ -22,5 +22,14 @@ Install the Firebase Admin SDK: Run the following command in your terminal or co
 За да настроите cron job да изпълнява скрипта на всеки час, отворете терминал и въведете crontab -e, за да редактирате crontab файла. Добавете следния ред в края на файла, като замените /path/to/your_script.py с пълния път до скрипта:
 
 ```console
-0 * * * * /usr/bin/python3 /path/to/predictor.py
+0 * * * * /full_path/venv/bin/python3 /path/to/predictor.py
 ```
+
+# Venv
+
+```console
+python3 -m venv venv
+source ./venv/bin/activate
+pip install -r requirements.txt
+```
+
