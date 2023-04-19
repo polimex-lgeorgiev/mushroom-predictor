@@ -1,7 +1,7 @@
 # mushroom-predictor
 Python script for mushroom prediction with e-mail notification
 
-Before you begin, you will need to register for an API key here [OpenWeatherMap](https://link-url-here.org)https://openweathermap.org/api)
+Before you begin, you will need to register for an API key here [OpenWeatherMap](https://openweathermap.org/api)
 
 # Use Firebase Realtime Database
 
