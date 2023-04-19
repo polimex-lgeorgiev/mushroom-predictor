@@ -1,0 +1,11 @@
+{
+  "openweathermap_api_key": "your_openweathermap_api_key",
+  "email": {
+    "sender_email": "your_email@example.com",
+    "sender_password": "your_email_password"
+  },
+  "firebase": {
+    "service_account_key": "path/to/serviceAccountKey.json",
+    "database_url": "https://your-database-url.firebaseio.com/"
+  }
+}
