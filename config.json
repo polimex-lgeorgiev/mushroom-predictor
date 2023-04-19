@@ -13,7 +13,6 @@
     "smtp_port": 587
   },
   "firebase": {
-    "service_account_key": "path/to/serviceAccountKey.json",
-    "database_url": "https://your-database-url.firebaseio.com/"
+    "service_account_key": "path/to/serviceAccountKey.json"
   }
 }
