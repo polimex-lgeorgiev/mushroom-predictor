@@ -1,5 +1,5 @@
 # mushroom-predictor
-Python script for mushroom prediction with notification e-mail
+Python script for mushroom prediction with e-mail notification
 
 Преди да започнете, ще трябва да се регистрирате за API ключ в OpenWeatherMap: https://openweathermap.org/api
 
