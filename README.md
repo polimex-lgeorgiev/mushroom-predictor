@@ -13,16 +13,17 @@ Set up Firebase Admin SDK: In the Firebase Console, click on the gear icon next 
 
 Install the Firebase Admin SDK: Run the following command in your terminal or command prompt to install the SDK:
 
-* Remember to replace 'path/to/serviceAccountKey.json' with the path to your service account key file and 'https://your-database-url.firebaseio.com/' with the URL of your Firebase Realtime Database.
+**Warning**
+Remember to replace 'path/to/serviceAccountKey.json' with the path to your service account key file and 'https://your-database-url.firebaseio.com/' with the URL of your Firebase Realtime Database.
 
 # Logger
 Този модифициран скрипт записва всички съобщения, които излизат към конзолата, в стандартен лог файл /var/log/mushroom.log. Обърнете внимание, че може да се наложи да стартирате скрипта с административни права, за да може да създаде и пише в лог файла в директорията /var/log.
 
 # Crontab
-За да настроите cron job да изпълнява скрипта на всеки час, отворете терминал и въведете crontab -e, за да редактирате crontab файла. Добавете следния ред в края на файла, като замените /path/to/your_script.py с пълния път до скрипта:
+За да настроите cron job да изпълнява скрипта на всеки час, отворете терминал и въведете crontab -e, за да редактирате crontab файла. Добавете следния ред в края на файла, като замените /path/to/predictor.py с пълния път до скрипта:
 
 ```console
-0 * * * * /full_path/venv/bin/python3 /path/to/predictor.py
+0 * * * * /path/to/venv/bin/python3 /path/to/predictor.py
 ```
 
 # Venv
