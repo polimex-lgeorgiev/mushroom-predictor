@@ -28,7 +28,9 @@ SENDER_PASSWORD = config['email']['sender_password']
 
 # Firebase configuration
 cred = credentials.Certificate(config['firebase']['service_account_key'])
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    'databaseURL': config['firebase']['database_url']
+})
 
 def check_and_create_log_file(log_file_path):
     try:
