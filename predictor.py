@@ -9,6 +9,27 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 
+def load_config(file_path):
+    with open(file_path, 'r') as f:
+        config = json.load(f)
+    return config
+
+config = load_config('config.json')
+
+# Weather API configuration
+API_KEY = config['openweathermap_api_key']
+API_URL = config['api_url']
+
+# Email configuration
+SENDER_EMAIL = config['email']['sender_email']
+SENDER_PASSWORD = config['email']['sender_password']
+
+# Firebase configuration
+cred = credentials.Certificate(config['firebase']['service_account_key'])
+firebase_admin.initialize_app(cred, {
+    'databaseURL': config['firebase']['database_url']
+})
+
 # Set up logging
 logging.basicConfig(
     filename='/var/log/mushroom.log',
@@ -17,22 +38,12 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# Firebase configuration
-cred = credentials.Certificate('path/to/serviceAccountKey.json')
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://your-database-url.firebaseio.com/'
-})
-
-# Weather API configuration
-API_KEY = 'your_openweathermap_api_key'
-API_URL = 'http://api.openweathermap.org/data/2.5/weather'
-
 # Email configuration
-SMTP_SERVER = 'smtp.gmail.com'
-SMTP_PORT = 587
-SENDER_EMAIL = 'your_email@example.com'
-SENDER_PASSWORD = 'your_email_password'
-RECIPIENT_EMAIL = 'recipient_email@example.com'
+SENDER_EMAIL = config['email']['sender_email']
+SENDER_PASSWORD = config['email']['sender_password']
+RECIPIENT_EMAIL = config['email']['recipient_email']
+SMTP_SERVER = config['email']['smtp_server']
+SMTP_PORT = config['email']['smtp_port']
 
 def get_weather_data(lat, lon):
     payload = {
@@ -58,23 +69,66 @@ def mushroom_probability(weather_data_list):
     probability = suitable_conditions_count / len(weather_data_list) * 100
     return probability
 
-def send_email(weather_data_list, probability):
-    message = MIMEMultipart()
-    message['From'] = SENDER_EMAIL
-    message['To'] = RECIPIENT_EMAIL
-    message['Subject'] = 'Mushroom Probability Report'
+def format_weather_data_as_table(weather_data_list):
+    table_header = "<tr><th>Date & Time</th><th>Temperature (°C)</th><th>Humidity (%)</th></tr>"
+    table_rows = [
+        f"<tr><td>{data['dt']}</td><td>{data['temp']:.2f}</td><td>{data['humidity']}</td></tr>"
+        for data in weather_data_list
+    ]
+    table = f"<table border='1'>{table_header}{''.join(table_rows)}</table>"
+    return table
 
-    text = f"Вероятността за поникване на гъби е {probability:.2f}%.\n\n"
-    text += "Weather data:\n"
+def calculate_daily_averages(weather_data_list):
+    daily_data = {}
     for data in weather_data_list:
-        text += json.dumps(data) + "\n"
+        date = data['dt'].split(' ')[0]
+        if date not in daily_data:
+            daily_data[date] = {'temp': [], 'humidity': []}
+        daily_data[date]['temp'].append(data['temp'])
+        daily_data[date]['humidity'].append(data['humidity'])
 
-    message.attach(MIMEText(text, 'plain'))
+    daily_averages = {}
+    for date, values in daily_data.items():
+        avg_temp = sum(values['temp']) / len(values['temp'])
+        avg_humidity = sum(values['humidity']) / len(values['humidity'])
+        daily_averages[date] = {'avg_temp': avg_temp, 'avg_humidity': avg_humidity}
+
+    return daily_averages
+
+def send_email(weather_data_list, probability):
+    table = format_weather_data_as_table(weather_data_list)
+    daily_averages = calculate_daily_averages(weather_data_list)
+
+    daily_averages_table = "<h3>Daily Averages:</h3>"
+    daily_averages_table += "<table border='1'><tr><th>Date</th><th>Avg Temp (°C)</th><th>Avg Humidity (%)</th></tr>"
+    for date, averages in daily_averages.items():
+        daily_averages_table += f"<tr><td>{date}</td><td>{averages['avg_temp']:.2f}</td><td>{averages['avg_humidity']:.2f}</td></tr>"
+    daily_averages_table += "</table>"
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = f"Mushroom Alert: {probability:.2f}% probability"
+    message["From"] = SENDER_EMAIL
+    message["To"] = RECIPIENT_EMAIL
+
+    html = f"""
+    <html>
+    <body>
+        <h1>Mushroom Alert</h1>
+        <p>There is a {probability:.2f}% probability of mushrooms in your area.</p>
+        <h3>Weather Data:</h3>
+        {table}
+        {daily_averages_table}
+    </body>
+    </html>
+    """
+    html_part = MIMEText(html, "html")
+    message.attach(html_part)
 
     try:
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        if SENDER_PASSWORD:
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
         server.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, message.as_string())
         server.quit()
         logging.info("Email sent successfully.")
@@ -99,8 +153,10 @@ def email_sent_today(log_filename):
         return False
 
 def main():
-    lat = 42.698334
-    lon = 23.319941
+    # Coordinates
+    lat = config['coordinates']['lat']
+    lon = config['coordinates']['lon']
+
     current_date = datetime.now().date()
 
     weather_data = get_weather_data(lat, lon)
