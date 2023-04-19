@@ -1,3 +1,5 @@
+import os
+import sys
 import requests
 import json
 import smtplib
@@ -28,9 +30,25 @@ SENDER_PASSWORD = config['email']['sender_password']
 cred = credentials.Certificate(config['firebase']['service_account_key'])
 firebase_admin.initialize_app(cred)
 
+def check_and_create_log_file(log_file_path):
+    try:
+        if not os.path.exists(log_file_path):
+            with open(log_file_path, 'w') as log_file:
+                log_file.write("")
+
+        if not os.access(log_file_path, os.W_OK):
+            print(f"Error: Log file '{log_file_path}' is not writable.")
+            sys.exit(1)
+
+    except Exception as e:
+        print(f"Error checking or creating log file '{log_file_path}': {e}")
+        sys.exit(1)
+
 # Set up logging
+LOG_FILE_PATH = "/var/log/mushroom.log"
+check_and_create_log_file(LOG_FILE_PATH)
 logging.basicConfig(
-    filename='/var/log/mushroom.log',
+    filename='LOG_FILE_PATH',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
