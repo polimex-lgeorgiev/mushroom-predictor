@@ -26,9 +26,7 @@ SENDER_PASSWORD = config['email']['sender_password']
 
 # Firebase configuration
 cred = credentials.Certificate(config['firebase']['service_account_key'])
-firebase_admin.initialize_app(cred, {
-    'databaseURL': config['firebase']['database_url']
-})
+firebase_admin.initialize_app(cred)
 
 # Set up logging
 logging.basicConfig(
@@ -151,8 +149,56 @@ def email_sent_today(log_filename):
             return last_sent_date == str(current_date)
     except FileNotFoundError:
         return False
+    
+def send_test_email():
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Mushroom Alert: Test Email"
+    message["From"] = SENDER_EMAIL
+    message["To"] = RECIPIENT_EMAIL
+
+    html = """
+    <html>
+    <body>
+        <h1>Mushroom Alert</h1>
+        <p>This is a test email. Please ignore it.</p>
+    </body>
+    </html>
+    """
+    html_part = MIMEText(html, "html")
+    message.attach(html_part)
+
+    try:
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        if SENDER_PASSWORD:
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        server.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, message.as_string())
+        server.quit()
+        logging.info("Test email sent successfully.")
+    except Exception as e:
+        logging.error(f"Error sending test email: {e}")
+
+def read_last_run_date(file_path):
+    try:
+        with open(file_path, 'r') as f:
+            last_run_date = f.read().strip()
+        return datetime.strptime(last_run_date, "%Y-%m-%d").date()
+    except FileNotFoundError:
+        return None
+
+def write_last_run_date(file_path, date):
+    with open(file_path, 'w') as f:
+        f.write(date.strftime("%Y-%m-%d"))
 
 def main():
+    LAST_RUN_DATE_FILE = 'last_run_date.txt'
+    current_date = datetime.now().date()
+    last_run_date = read_last_run_date(LAST_RUN_DATE_FILE)
+
+    if last_run_date is None or last_run_date < current_date:
+        send_test_email()
+        write_last_run_date(LAST_RUN_DATE_FILE, current_date)
+
     # Coordinates
     lat = config['coordinates']['lat']
     lon = config['coordinates']['lon']
