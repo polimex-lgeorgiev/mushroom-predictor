@@ -1,8 +1,16 @@
 {
   "openweathermap_api_key": "your_openweathermap_api_key",
+  "api_url": "http://api.openweathermap.org/data/2.5/weather",
+  "coordinates": {
+    "lat": 42.698334,
+    "lon": 23.319941
+  },
   "email": {
     "sender_email": "your_email@example.com",
-    "sender_password": "your_email_password"
+    "sender_password": "your_email_password",
+    "recipient_email": "recipient_email@example.com",
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587
   },
   "firebase": {
     "service_account_key": "path/to/serviceAccountKey.json",
